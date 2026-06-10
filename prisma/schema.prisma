@@ -1,0 +1,246 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum OperatorStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum SimStatus {
+  ACTIVE
+  ASSIGNED
+  APPROVED
+  REJECTED
+}
+
+enum VendorStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum KycStatus {
+  PENDING
+  REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum OrderStatus {
+  PENDING
+  ASSIGNED
+  DISPATCHED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentMethodType {
+  COD
+  ONLINE
+}
+
+enum LedgerType {
+  SIM_APPROVED
+  SIM_REJECTED
+  COMMISSION_WITHDRAWAL
+  MANUAL_ADJUSTMENT
+  ONLINE_PAYMENT_OFFSET
+  COD_SETTLEMENT
+}
+
+enum AdminRole {
+  SUPERADMIN
+  MANAGER
+  SUPPORT
+}
+
+enum DocumentType {
+  CITIZENSHIP
+  PAN
+  ADDRESS_PROOF
+  SIGNED_CONTRACT
+}
+
+model Operator {
+  id                String         @id @default(cuid())
+  name              String         @unique
+  defaultCommission Int
+  defaultFine       Int
+  status            OperatorStatus @default(ACTIVE)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  sims   Sim[]
+  orders Order[]
+}
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         AdminRole @default(MANAGER)
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  simEvents     SimStatusEvent[]
+  orderEvents   OrderStatusEvent[]
+  ledgerEntries BalanceLedger[]
+}
+
+model Vendor {
+  id                  String       @id @default(cuid())
+  ownerName           String
+  businessName        String
+  address             String
+  phone               String       @unique
+  email               String?      @unique
+  citizenshipNumber   String
+  panNumber           String
+  passwordHash        String
+  status              VendorStatus @default(PENDING)
+  kycStatus           KycStatus    @default(PENDING)
+  rejectionReason     String?
+  commissionOverride  Int?
+  fineOverride        Int?
+  notes               String?
+  balance             Int          @default(0)
+  signedContractId    String?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  signedContract Contract?       @relation(fields: [signedContractId], references: [id])
+  sims           Sim[]
+  orders         Order[]
+  ledger         BalanceLedger[]
+  documents      KYCDocument[]
+}
+
+model Contract {
+  id        String   @id @default(cuid())
+  version   String   @unique
+  fileUrl   String
+  active    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  signedBy Vendor[]
+}
+
+model KYCDocument {
+  id        String       @id @default(cuid())
+  vendorId  String
+  type      DocumentType
+  fileUrl   String
+  status    KycStatus    @default(PENDING)
+  note      String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+}
+
+model Sim {
+  id                String    @id @default(cuid())
+  number            String    @unique
+  operatorId        String
+  status            SimStatus @default(ACTIVE)
+  assignedVendorId  String?
+  orderId           String?
+  commissionApplied Int?
+  fineApplied       Int?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  operator       Operator         @relation(fields: [operatorId], references: [id])
+  assignedVendor Vendor?          @relation(fields: [assignedVendorId], references: [id])
+  order          Order?           @relation(fields: [orderId], references: [id])
+  ledgerEntries  BalanceLedger[]
+  statusEvents   SimStatusEvent[]
+}
+
+model Order {
+  id                    String            @id @default(cuid())
+  reference             String            @unique
+  vendorId              String
+  operatorId            String
+  quantity              Int
+  assignedStartNumber   String?
+  assignedEndNumber     String?
+  paymentMethod         PaymentMethodType
+  commissionUsed        Int               @default(0)
+  status                OrderStatus       @default(PENDING)
+  pendingAt             DateTime          @default(now())
+  assignedAt            DateTime?
+  dispatchedAt          DateTime?
+  deliveredAt           DateTime?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  vendor        Vendor             @relation(fields: [vendorId], references: [id])
+  operator      Operator           @relation(fields: [operatorId], references: [id])
+  sims          Sim[]
+  ledgerEntries BalanceLedger[]
+  statusEvents  OrderStatusEvent[]
+}
+
+model BalanceLedger {
+  id             String     @id @default(cuid())
+  vendorId       String
+  type           LedgerType
+  amount         Int
+  runningBalance Int
+  note           String
+  simId          String?
+  orderId        String?
+  adminUserId    String?
+  createdAt      DateTime   @default(now())
+
+  vendor    Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  sim       Sim?   @relation(fields: [simId], references: [id])
+  order     Order? @relation(fields: [orderId], references: [id])
+  adminUser User?  @relation(fields: [adminUserId], references: [id])
+}
+
+model SimStatusEvent {
+  id          String    @id @default(cuid())
+  simId       String
+  fromStatus  SimStatus?
+  toStatus    SimStatus
+  adminUserId String?
+  note        String?
+  createdAt   DateTime  @default(now())
+
+  sim       Sim   @relation(fields: [simId], references: [id], onDelete: Cascade)
+  adminUser User? @relation(fields: [adminUserId], references: [id])
+}
+
+model OrderStatusEvent {
+  id          String       @id @default(cuid())
+  orderId     String
+  fromStatus  OrderStatus?
+  toStatus    OrderStatus
+  adminUserId String?
+  note        String?
+  createdAt   DateTime     @default(now())
+
+  order     Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  adminUser User? @relation(fields: [adminUserId], references: [id])
+}
+
+model PaymentMethod {
+  id        String            @id @default(cuid())
+  name      String
+  type      PaymentMethodType
+  active    Boolean           @default(true)
+  qrUrl     String?
+  note      String?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
