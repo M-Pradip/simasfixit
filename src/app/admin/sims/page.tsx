@@ -181,20 +181,23 @@ export default async function SimsPage(props: {
             "Order",
             "Commission/Fine",
           ]}
-          rows={sims.map((sim) => [
-            <span className="font-mono text-xs font-bold" key={sim.id}>
-              {sim.number}
-            </span>,
-            sim.operator.name,
-            <StatusBadge key="status" status={sim.status} />,
-            sim.assignedVendor?.businessName ?? "Unassigned",
-            sim.order?.reference ?? "-",
-            sim.commissionApplied
-              ? formatMoney(sim.commissionApplied)
-              : sim.fineApplied
-                ? formatMoney(-sim.fineApplied)
-                : "-",
-          ])}
+          rows={sims.map(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (sim: any) => [
+              <span className="font-mono text-xs font-bold" key={sim.id}>
+                {sim.number}
+              </span>,
+              sim.operator.name,
+              <StatusBadge key="status" status={sim.status} />,
+              sim.assignedVendor?.businessName ?? "Unassigned",
+              sim.order?.reference ?? "-",
+              sim.commissionApplied
+                ? formatMoney(sim.commissionApplied)
+                : sim.fineApplied
+                  ? formatMoney(-sim.fineApplied)
+                  : "-",
+            ],
+          )}
         />
       </div>
     </div>
