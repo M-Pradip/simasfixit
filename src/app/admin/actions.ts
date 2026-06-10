@@ -252,7 +252,7 @@ export async function addContract(formData: FormData) {
 
   const fileUrl = await saveLocalUpload("contracts", file);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx: any) => {
     if (active) {
       await tx.contract.updateMany({ data: { active: false } });
     }
