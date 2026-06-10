@@ -1,16 +1,25 @@
-import bcrypt from "bcryptjs";
-import { NextResponse, type NextRequest } from "next/server";
 import { encryptSession, sessionCookieName } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
+import { NextResponse, type NextRequest } from "next/server";
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
-  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const email = String(formData.get("email") ?? "")
+    .trim()
+    .toLowerCase();
   const password = String(formData.get("password") ?? "");
   const user = await prisma.user.findUnique({ where: { email } });
 
-  if (!user || !user.active || !(await bcrypt.compare(password, user.passwordHash))) {
-    return NextResponse.redirect(new URL("/admin/login?error=invalid", request.url), 303);
+  if (
+    !user ||
+    !user.active ||
+    !(await bcrypt.compare(password, user.passwordHash))
+  ) {
+    return NextResponse.redirect(
+      new URL("/admin/login?error=invalid", request.url),
+      303,
+    );
   }
 
   const token = await encryptSession({
@@ -23,8 +32,8 @@ export async function POST(request: NextRequest) {
 
   response.cookies.set(sessionCookieName, token, {
     httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    secure: true,
     path: "/",
     maxAge: 60 * 60 * 24 * 7,
   });

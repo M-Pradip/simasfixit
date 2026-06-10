@@ -1,7 +1,7 @@
-import bcrypt from "bcryptjs";
-import { NextResponse, type NextRequest } from "next/server";
 import { encryptSession, sessionCookieName } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
+import { NextResponse, type NextRequest } from "next/server";
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
@@ -9,8 +9,15 @@ export async function POST(request: NextRequest) {
   const password = String(formData.get("password") ?? "");
   const vendor = await prisma.vendor.findUnique({ where: { phone } });
 
-  if (!vendor || vendor.status !== "APPROVED" || !(await bcrypt.compare(password, vendor.passwordHash))) {
-    return NextResponse.redirect(new URL("/vendor/login?error=invalid", request.url), 303);
+  if (
+    !vendor ||
+    vendor.status !== "APPROVED" ||
+    !(await bcrypt.compare(password, vendor.passwordHash))
+  ) {
+    return NextResponse.redirect(
+      new URL("/vendor/login?error=invalid", request.url),
+      303,
+    );
   }
 
   const token = await encryptSession({
@@ -22,8 +29,8 @@ export async function POST(request: NextRequest) {
 
   response.cookies.set(sessionCookieName, token, {
     httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    secure: true,
     path: "/",
     maxAge: 60 * 60 * 24 * 7,
   });

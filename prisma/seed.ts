@@ -1,4 +1,4 @@
-// NEW
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
@@ -6,8 +6,9 @@ if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL is not configured.");
 }
 
-const prisma = new PrismaClient();
-
+const prisma = new PrismaClient({
+  adapter: new PrismaPg(process.env.DATABASE_URL),
+});
 function simNumbers(start: number, end: number) {
   return Array.from({ length: end - start + 1 }, (_, index) =>
     String(start + index),
