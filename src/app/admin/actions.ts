@@ -121,7 +121,7 @@ export async function adjustVendorBalance(formData: FormData) {
       "Balance adjustment amount must be a non-zero whole rupee value",
     );
   }
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await prisma.$transaction(async (tx: any) => {
     const vendor = await tx.vendor.update({
       where: { id: vendorId },
@@ -251,7 +251,7 @@ export async function addContract(formData: FormData) {
   }
 
   const fileUrl = await saveLocalUpload("contracts", file);
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await prisma.$transaction(async (tx) => {
     if (active) {
       await tx.contract.updateMany({ data: { active: false } });
