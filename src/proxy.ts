@@ -3,7 +3,13 @@ import { decryptSession, sessionCookieName } from "./lib/auth";
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const session = await decryptSession(request.cookies.get(sessionCookieName)?.value);
+  const cookieValue = request.cookies.get(sessionCookieName)?.value;
+
+  console.log("PROXY:", pathname, "cookie exists:", !!cookieValue);
+
+  const session = await decryptSession(cookieValue);
+
+  console.log("PROXY session:", session?.kind ?? "null");
 
   if (pathname.startsWith("/admin/login")) {
     if (session?.kind === "admin") {
