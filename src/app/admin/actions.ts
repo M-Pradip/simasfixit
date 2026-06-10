@@ -309,8 +309,8 @@ export async function processSimStatus(formData: FormData) {
   if (targetStatus !== "APPROVED" && targetStatus !== "REJECTED") {
     throw new Error("SIM can only be approved or rejected from this screen");
   }
-
-  await prisma.$transaction(async (tx) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await prisma.$transaction(async (tx: any) => {
     const sim = await tx.sim.findUnique({
       where: simId
         ? { id: simId }
@@ -482,8 +482,8 @@ export async function assignSimsToOrder(formData: FormData) {
       `Cannot assign more than ${order.quantity} SIMs to this order`,
     );
   }
-
-  await prisma.$transaction(async (tx) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await prisma.$transaction(async (tx: any) => {
     const simsToAssign = await tx.sim.findMany({
       where: {
         id: { in: simIds },
