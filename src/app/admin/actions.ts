@@ -3,6 +3,7 @@
 import { getCurrentSession, isPrivilegedAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { localUploadPath } from "@/lib/upload";
+import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -122,7 +123,7 @@ export async function adjustVendorBalance(formData: FormData) {
     );
   }
 
-  await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const vendor = await tx.vendor.update({
       where: { id: vendorId },
       data: { balance: { increment: amount } },

@@ -1,17 +1,17 @@
+// NEW
 import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL is not configured.");
 }
 
-const prisma = new PrismaClient({
-  adapter: new PrismaPg(process.env.DATABASE_URL),
-});
+const prisma = new PrismaClient();
 
 function simNumbers(start: number, end: number) {
-  return Array.from({ length: end - start + 1 }, (_, index) => String(start + index));
+  return Array.from({ length: end - start + 1 }, (_, index) =>
+    String(start + index),
+  );
 }
 
 async function main() {
@@ -94,8 +94,18 @@ async function main() {
 
   await prisma.paymentMethod.createMany({
     data: [
-      { name: "Cash on Delivery", type: "COD", active: true, note: "Physical settlement on delivery" },
-      { name: "Online Payment", type: "ONLINE", active: true, note: "Digital payment with optional commission offset" },
+      {
+        name: "Cash on Delivery",
+        type: "COD",
+        active: true,
+        note: "Physical settlement on delivery",
+      },
+      {
+        name: "Online Payment",
+        type: "ONLINE",
+        active: true,
+        note: "Digital payment with optional commission offset",
+      },
     ],
   });
 
@@ -113,7 +123,8 @@ async function main() {
       kycStatus: "APPROVED",
       commissionOverride: 130,
       fineOverride: 55,
-      notes: "High volume Pasal. Allows commission withdrawals for online orders.",
+      notes:
+        "High volume Pasal. Allows commission withdrawals for online orders.",
       balance: 8460,
       signedContractId: activeContract.id,
     },
@@ -159,10 +170,30 @@ async function main() {
   for (const vendor of [laxmi, bhaktapur, koshi]) {
     await prisma.kYCDocument.createMany({
       data: [
-        { vendorId: vendor.id, type: "CITIZENSHIP", fileUrl: `/uploads/kyc/${vendor.id}/citizenship.pdf`, status: vendor.kycStatus },
-        { vendorId: vendor.id, type: "PAN", fileUrl: `/uploads/kyc/${vendor.id}/pan.pdf`, status: vendor.kycStatus },
-        { vendorId: vendor.id, type: "ADDRESS_PROOF", fileUrl: `/uploads/kyc/${vendor.id}/address.pdf`, status: vendor.kycStatus },
-        { vendorId: vendor.id, type: "SIGNED_CONTRACT", fileUrl: `/uploads/kyc/${vendor.id}/contract.pdf`, status: vendor.kycStatus },
+        {
+          vendorId: vendor.id,
+          type: "CITIZENSHIP",
+          fileUrl: `/uploads/kyc/${vendor.id}/citizenship.pdf`,
+          status: vendor.kycStatus,
+        },
+        {
+          vendorId: vendor.id,
+          type: "PAN",
+          fileUrl: `/uploads/kyc/${vendor.id}/pan.pdf`,
+          status: vendor.kycStatus,
+        },
+        {
+          vendorId: vendor.id,
+          type: "ADDRESS_PROOF",
+          fileUrl: `/uploads/kyc/${vendor.id}/address.pdf`,
+          status: vendor.kycStatus,
+        },
+        {
+          vendorId: vendor.id,
+          type: "SIGNED_CONTRACT",
+          fileUrl: `/uploads/kyc/${vendor.id}/contract.pdf`,
+          status: vendor.kycStatus,
+        },
       ],
     });
   }
@@ -222,15 +253,27 @@ async function main() {
 
   await prisma.sim.updateMany({
     where: { number: { gte: "9812345600", lte: "9812345699" } },
-    data: { status: "ASSIGNED", assignedVendorId: laxmi.id, orderId: order1046.id },
+    data: {
+      status: "ASSIGNED",
+      assignedVendorId: laxmi.id,
+      orderId: order1046.id,
+    },
   });
   await prisma.sim.updateMany({
     where: { number: { gte: "9812345700", lte: "9812345729" } },
-    data: { status: "ASSIGNED", assignedVendorId: koshi.id, orderId: order1047.id },
+    data: {
+      status: "ASSIGNED",
+      assignedVendorId: koshi.id,
+      orderId: order1047.id,
+    },
   });
   await prisma.sim.updateMany({
     where: { number: { gte: "9812345800", lte: "9812345849" } },
-    data: { status: "ASSIGNED", assignedVendorId: laxmi.id, orderId: order1048.id },
+    data: {
+      status: "ASSIGNED",
+      assignedVendorId: laxmi.id,
+      orderId: order1048.id,
+    },
   });
 
   const approvedSim = await prisma.sim.update({
@@ -305,18 +348,55 @@ async function main() {
 
   await prisma.orderStatusEvent.createMany({
     data: [
-      { orderId: order1046.id, toStatus: "ASSIGNED", adminUserId: manager.id, note: "Assigned range 9812345600-9812345699" },
-      { orderId: order1046.id, fromStatus: "ASSIGNED", toStatus: "DISPATCHED", adminUserId: manager.id },
-      { orderId: order1047.id, toStatus: "ASSIGNED", adminUserId: manager.id, note: "Assigned range 9812345700-9812345729" },
-      { orderId: order1047.id, fromStatus: "DISPATCHED", toStatus: "DELIVERED", adminUserId: manager.id },
-      { orderId: order1048.id, toStatus: "ASSIGNED", adminUserId: superadmin.id, note: "Online payment with commission offset" },
+      {
+        orderId: order1046.id,
+        toStatus: "ASSIGNED",
+        adminUserId: manager.id,
+        note: "Assigned range 9812345600-9812345699",
+      },
+      {
+        orderId: order1046.id,
+        fromStatus: "ASSIGNED",
+        toStatus: "DISPATCHED",
+        adminUserId: manager.id,
+      },
+      {
+        orderId: order1047.id,
+        toStatus: "ASSIGNED",
+        adminUserId: manager.id,
+        note: "Assigned range 9812345700-9812345729",
+      },
+      {
+        orderId: order1047.id,
+        fromStatus: "DISPATCHED",
+        toStatus: "DELIVERED",
+        adminUserId: manager.id,
+      },
+      {
+        orderId: order1048.id,
+        toStatus: "ASSIGNED",
+        adminUserId: superadmin.id,
+        note: "Online payment with commission offset",
+      },
     ],
   });
 
   await prisma.simStatusEvent.createMany({
     data: [
-      { simId: approvedSim.id, fromStatus: "ASSIGNED", toStatus: "APPROVED", adminUserId: manager.id, note: "Activation report approved" },
-      { simId: rejectedSim.id, fromStatus: "ASSIGNED", toStatus: "REJECTED", adminUserId: manager.id, note: "Activation report rejected" },
+      {
+        simId: approvedSim.id,
+        fromStatus: "ASSIGNED",
+        toStatus: "APPROVED",
+        adminUserId: manager.id,
+        note: "Activation report approved",
+      },
+      {
+        simId: rejectedSim.id,
+        fromStatus: "ASSIGNED",
+        toStatus: "REJECTED",
+        adminUserId: manager.id,
+        note: "Activation report rejected",
+      },
     ],
   });
 
