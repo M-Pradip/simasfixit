@@ -1,12 +1,21 @@
+import { AccessDenied } from "@/components/admin/access-denied";
 import { AssignSimsButton } from "@/components/admin/orders/assign-sims-button";
 import { ChangeOrderStatusButton } from "@/components/admin/orders/change-order-status-button";
 import { DataTable } from "@/components/data-table";
 import { StatusBadge } from "@/components/status-badge";
+import { isPrivilegedAdmin, requireAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 export default async function OrderDetailPage(
   props: PageProps<"/admin/orders/[id]">,
 ) {
+  const session = await requireAdminSession();
+  if (!isPrivilegedAdmin(session.role)) {
+    return (
+      <AccessDenied message="You do not have permission to view order details." />
+    );
+  }
+
   const { id } = await props.params;
   const order = await prisma.order.findUnique({
     where: { id },

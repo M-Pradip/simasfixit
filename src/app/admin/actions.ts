@@ -3,6 +3,8 @@
 import { getCurrentSession, isPrivilegedAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { localUploadPath } from "@/lib/upload";
+import type { AdminRole } from "@prisma/client";
+import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -42,6 +44,21 @@ function optionalNumber(formData: FormData, key: string) {
   }
 
   return parsed;
+}
+
+function requiredEmail(formData: FormData, key: string) {
+  const value = String(formData.get(key) ?? "").trim();
+  const parsed = z.string().email().parse(value);
+  return parsed;
+}
+
+function requiredRole(formData: FormData, key: string) {
+  const value = String(formData.get(key) ?? "").trim();
+  return z.enum(["SUPERADMIN", "MANAGER", "SUPPORT"]).parse(value) as AdminRole;
+}
+
+async function hashPassword(password: string) {
+  return bcrypt.hash(password, 10);
 }
 
 function safeUploadName(fileName: string) {
@@ -208,6 +225,91 @@ export async function togglePaymentMethodStatus(formData: FormData) {
   });
   revalidatePath("/admin/payment-methods");
   revalidatePath("/vendor/orders/new");
+}
+
+export async function createAdminUser(formData: FormData) {
+  await requirePrivilegedAdmin();
+
+  const name = requiredString(formData, "name");
+  const email = requiredEmail(formData, "email");
+  const role = requiredRole(formData, "role");
+  const password = requiredString(formData, "password");
+
+  if (password.length < 6) {
+    throw new Error("Password must be at least 6 characters");
+  }
+
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing) {
+    throw new Error("A user with that email already exists");
+  }
+
+  const passwordHash = await hashPassword(password);
+
+  await prisma.user.create({
+    data: {
+      name,
+      email,
+      role,
+      passwordHash,
+      active: true,
+    },
+  });
+
+  revalidatePath("/admin/users");
+}
+
+export async function updateAdminUser(formData: FormData) {
+  await requirePrivilegedAdmin();
+
+  const userId = requiredString(formData, "userId");
+  const name = requiredString(formData, "name");
+  const email = requiredEmail(formData, "email");
+  const role = requiredRole(formData, "role");
+  const password = String(formData.get("password") ?? "").trim();
+
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing && existing.id !== userId) {
+    throw new Error("A user with that email already exists");
+  }
+
+  const data: {
+    name: string;
+    email: string;
+    role: AdminRole;
+    passwordHash?: string;
+  } = {
+    name,
+    email,
+    role,
+  };
+
+  if (password) {
+    if (password.length < 6) {
+      throw new Error("Password must be at least 6 characters");
+    }
+    data.passwordHash = await hashPassword(password);
+  }
+
+  await prisma.user.update({
+    where: { id: userId },
+    data,
+  });
+
+  revalidatePath("/admin/users");
+}
+
+export async function deleteAdminUser(formData: FormData) {
+  const session = await requirePrivilegedAdmin();
+
+  const userId = requiredString(formData, "userId");
+
+  if (session.id === userId) {
+    throw new Error("You cannot delete your own account");
+  }
+
+  await prisma.user.delete({ where: { id: userId } });
+  revalidatePath("/admin/users");
 }
 
 export async function updatePaymentMethodQr(formData: FormData) {

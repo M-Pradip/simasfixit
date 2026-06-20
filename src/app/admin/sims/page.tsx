@@ -1,5 +1,7 @@
+import { AccessDenied } from "@/components/admin/access-denied";
 import { DataTable } from "@/components/data-table";
 import { StatusBadge } from "@/components/status-badge";
+import { isPrivilegedAdmin, requireAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatMoney, nepalDateRange } from "@/lib/utils";
 import { addSimRange, addSingleSim } from "../actions";

@@ -13,6 +13,37 @@ export type AppSession = {
   role?: string;
 };
 
+export type AdminRoleType = "SUPERADMIN" | "MANAGER" | "SUPPORT";
+
+export function isAdminRole(role?: string): role is AdminRoleType {
+  return role === "SUPERADMIN" || role === "MANAGER" || role === "SUPPORT";
+}
+
+export function isPrivilegedAdmin(role?: string) {
+  return role === "SUPERADMIN" || role === "MANAGER";
+}
+
+export function isSuperAdmin(role?: string) {
+  return role === "SUPERADMIN";
+}
+
+export function isSupportAdmin(role?: string) {
+  return role === "SUPPORT";
+}
+
+export function isAdminPageAllowed(role?: string, page: string) {
+  if (!isAdminRole(role)) {
+    return false;
+  }
+
+  if (role === "SUPERADMIN" || role === "MANAGER") {
+    return true;
+  }
+
+  const supportPages = ["DASHBOARD", "APPROVAL", "KYC"];
+  return supportPages.includes(page);
+}
+
 function getSecretKey() {
   const secret = process.env.SESSION_SECRET;
 
@@ -83,8 +114,4 @@ export async function requireVendorSession() {
   }
 
   return session;
-}
-
-export function isPrivilegedAdmin(role?: string) {
-  return role === "SUPERADMIN" || role === "MANAGER";
 }

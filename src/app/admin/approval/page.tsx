@@ -1,5 +1,7 @@
+import { AccessDenied } from "@/components/admin/access-denied";
 import { DataTable } from "@/components/data-table";
 import { StatusBadge } from "@/components/status-badge";
+import { isPrivilegedAdmin, requireAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatMoney } from "@/lib/utils";
 import { processSimSearch, processSimStatus } from "../actions";
@@ -7,6 +9,13 @@ import { processSimSearch, processSimStatus } from "../actions";
 export default async function ApprovalPage(props: {
   searchParams: Promise<{ q?: string }>;
 }) {
+  const session = await requireAdminSession();
+  if (!isPrivilegedAdmin(session.role)) {
+    return (
+      <AccessDenied message="You do not have permission to view SIM approval." />
+    );
+  }
+
   const { q } = await props.searchParams;
   const query = q?.trim();
   const sims = await prisma.sim.findMany({
