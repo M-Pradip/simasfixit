@@ -92,7 +92,7 @@ export default async function UsersPage() {
               key={`${user.id}-status`}
               status={user.active ? "ACTIVE" : "INACTIVE"}
             />,
-            <div className="flex flex-col gap-2">
+            <div key={`${user.id}-actions`} className="flex flex-col gap-2">
               <form
                 action={updateAdminUser}
                 className="grid gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3"

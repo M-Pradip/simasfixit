@@ -2,13 +2,11 @@
 
 import { getCurrentSession, isPrivilegedAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { localUploadPath } from "@/lib/upload";
+import { saveLocalUpload } from "@/lib/upload";
 import type { AdminRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
 import { z } from "zod";
 
 async function requirePrivilegedAdmin() {
@@ -59,26 +57,6 @@ function requiredRole(formData: FormData, key: string) {
 
 async function hashPassword(password: string) {
   return bcrypt.hash(password, 10);
-}
-
-function safeUploadName(fileName: string) {
-  return fileName.replace(/[^a-zA-Z0-9._-]/g, "-").replace(/-+/g, "-");
-}
-
-async function saveLocalUpload(kind: "contracts" | "payment-qr", file: File) {
-  if (!file.size) {
-    throw new Error("A file is required");
-  }
-
-  const fileName = `${Date.now()}-${safeUploadName(file.name)}`;
-  const uploadDir = path.join(process.cwd(), "public", "uploads", kind);
-  await mkdir(uploadDir, { recursive: true });
-  await writeFile(
-    path.join(uploadDir, fileName),
-    Buffer.from(await file.arrayBuffer()),
-  );
-
-  return localUploadPath(kind, fileName);
 }
 
 export async function addSingleSim(formData: FormData) {

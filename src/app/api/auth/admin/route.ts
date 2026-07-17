@@ -5,7 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
-  const email = String(formData.get("email") ?? "")
+  const email = String(formData.get("email") ?? formData.get("identifier") ?? "")
     .trim()
     .toLowerCase();
   const password = String(formData.get("password") ?? "");
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
   response.cookies.set(sessionCookieName, token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     path: "/",
     maxAge: 60 * 60 * 24 * 7,
   });

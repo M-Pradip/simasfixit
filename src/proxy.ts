@@ -5,11 +5,7 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const cookieValue = request.cookies.get(sessionCookieName)?.value;
 
-  console.log("PROXY:", pathname, "cookie exists:", !!cookieValue);
-
   const session = await decryptSession(cookieValue);
-
-  console.log("PROXY session:", session?.kind ?? "null");
 
   if (pathname.startsWith("/admin/login")) {
     if (session?.kind === "admin") {
@@ -24,6 +20,10 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL("/vendor", request.url));
     }
 
+    return NextResponse.next();
+  }
+
+  if (pathname.startsWith("/vendor/register")) {
     return NextResponse.next();
   }
 
