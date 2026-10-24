@@ -66,7 +66,10 @@ export async function POST(request: NextRequest) {
   }
 
   if (!(await bcrypt.compare(password, vendor.passwordHash))) {
-    return NextResponse.redirect(new URL("/login?error=invalid", request.url), 303);
+    return NextResponse.redirect(
+      new URL("/login?error=vendor_password", request.url),
+      303,
+    );
   }
 
   const token = await encryptSession({

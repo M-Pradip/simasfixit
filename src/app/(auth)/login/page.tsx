@@ -23,6 +23,8 @@ function messageFromQuery(
       "We could not verify those credentials. Please check the identifier and password.",
     pending:
       "Your vendor account is waiting for approval. Try again after the review is completed.",
+    vendor_password:
+      "Incorrect password. Please contact an ASFixit admin to reset your vendor account password.",
   };
 
   return {

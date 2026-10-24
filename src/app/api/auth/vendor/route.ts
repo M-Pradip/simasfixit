@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
   if (!(await bcrypt.compare(password, vendor.passwordHash))) {
     return NextResponse.redirect(
-      new URL("/vendor/login?error=invalid", request.url),
+      new URL("/vendor/login?error=vendor_password", request.url),
       303,
     );
   }

@@ -156,6 +156,29 @@ export async function updateVendorRates(formData: FormData) {
   revalidatePath("/admin/vendors");
 }
 
+export async function resetVendorPassword(formData: FormData) {
+  await requirePrivilegedAdmin();
+
+  const vendorId = requiredString(formData, "vendorId");
+  const password = String(formData.get("password") ?? "");
+  const confirmPassword = String(formData.get("confirmPassword") ?? "");
+
+  if (password.length < 8) {
+    throw new Error("Vendor password must be at least 8 characters");
+  }
+  if (password !== confirmPassword) {
+    throw new Error("Passwords do not match");
+  }
+
+  await prisma.vendor.update({
+    where: { id: vendorId },
+    data: { passwordHash: await hashPassword(password) },
+  });
+
+  revalidatePath(`/admin/vendors/${vendorId}`);
+  redirect(`/admin/vendors/${vendorId}?passwordReset=1`);
+}
+
 export async function updateOperatorDefaults(formData: FormData) {
   await requirePrivilegedAdmin();
 

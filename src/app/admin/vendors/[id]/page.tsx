@@ -6,7 +6,11 @@ import { prisma } from "@/lib/prisma";
 import { formatMoney, formatNepalDateTime } from "@/lib/utils";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { adjustVendorBalance, updateVendorRates } from "../../actions";
+import {
+  adjustVendorBalance,
+  resetVendorPassword,
+  updateVendorRates,
+} from "../../actions";
 
 export default async function VendorDetailPage(
   props: PageProps<"/admin/vendors/[id]">,
@@ -18,7 +22,10 @@ export default async function VendorDetailPage(
     );
   }
 
-  const { id } = await props.params;
+  const [{ id }, searchParams] = await Promise.all([
+    props.params,
+    props.searchParams,
+  ]);
   const vendor = await prisma.vendor.findUnique({
     where: { id },
     include: {
@@ -132,6 +139,48 @@ export default async function VendorDetailPage(
           </div>
         </form>
       </div>
+
+      <section className="mt-6 rounded-lg border border-slate-200 bg-white p-5">
+        <h2 className="text-lg font-bold text-slate-950">Reset vendor password</h2>
+        <p className="mt-1 text-sm text-slate-600">
+          Set a new password and share it with the vendor through a secure channel.
+        </p>
+        {searchParams.passwordReset === "1" && (
+          <p className="mt-3 rounded-md bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800">
+            Vendor password was reset successfully.
+          </p>
+        )}
+        <form action={resetVendorPassword} className="mt-4 grid gap-3 sm:grid-cols-2">
+          <input type="hidden" name="vendorId" value={vendor.id} />
+          <label className="grid gap-1 text-sm font-medium text-slate-700">
+            New password
+            <input
+              className="rounded-md border border-slate-300 px-3 py-2"
+              type="password"
+              name="password"
+              autoComplete="new-password"
+              minLength={8}
+              required
+            />
+          </label>
+          <label className="grid gap-1 text-sm font-medium text-slate-700">
+            Confirm new password
+            <input
+              className="rounded-md border border-slate-300 px-3 py-2"
+              type="password"
+              name="confirmPassword"
+              autoComplete="new-password"
+              minLength={8}
+              required
+            />
+          </label>
+          <div className="sm:col-span-2">
+            <button className="rounded-md bg-slate-950 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800">
+              Reset password
+            </button>
+          </div>
+        </form>
+      </section>
 
       <section className="mt-6">
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white p-5">
