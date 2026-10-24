@@ -81,6 +81,7 @@ export default async function UsersPage() {
 
       <div className="mt-6">
         <DataTable
+          pagination
           headers={["Name", "Email", "Role", "Status", "Managed by"]}
           rows={users.map((user) => [
             <div key={`${user.id}-name`} className="font-bold text-slate-950">

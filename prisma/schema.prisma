@@ -70,6 +70,7 @@ enum DocumentType {
 model Operator {
   id                String         @id @default(cuid())
   name              String         @unique
+  simCost           Int            @default(0)
   defaultCommission Int
   defaultFine       Int
   status            OperatorStatus @default(ACTIVE)
@@ -171,6 +172,10 @@ model Order {
   vendorId              String
   operatorId            String
   quantity              Int
+  simUnitCost           Int               @default(0)
+  subtotal              Int               @default(0)
+  amountDue             Int               @default(0)
+  paymentScreenshotUrl  String?
   assignedStartNumber   String?
   assignedEndNumber     String?
   paymentMethod         PaymentMethodType

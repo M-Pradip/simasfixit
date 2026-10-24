@@ -24,6 +24,7 @@ export default async function CommissionsPage() {
       </h1>
       <div className="mt-6">
         <DataTable
+          pagination
           headers={[
             "Vendor",
             "Commission earned",

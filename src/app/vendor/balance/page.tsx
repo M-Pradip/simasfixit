@@ -16,6 +16,7 @@ export default async function VendorBalancePage() {
       <p className={vendor.balance < 0 ? "mt-2 text-xl font-black text-rose-700" : "mt-2 text-xl font-black text-emerald-700"}>{formatMoney(vendor.balance)}</p>
       <div className="mt-6">
         <DataTable
+          pagination
           headers={["Date", "Type", "Reference", "Amount", "Running balance", "Note"]}
           rows={vendor.ledger.map((entry) => [
             entry.createdAt.toLocaleDateString(),

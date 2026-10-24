@@ -25,7 +25,6 @@ export default async function ApprovalPage(props: {
     },
     include: { assignedVendor: true, order: true, operator: true },
     orderBy: { updatedAt: "desc" },
-    take: 40,
   });
 
   return (
@@ -53,6 +52,7 @@ export default async function ApprovalPage(props: {
       </form>
       <div className="mt-6">
         <DataTable
+          pagination
           headers={[
             "SIM",
             "Vendor",

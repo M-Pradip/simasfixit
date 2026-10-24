@@ -24,6 +24,7 @@ function registerMessage(error?: string | string[], registered?: string | string
     weak_password: "Password must be at least 8 characters long.",
     missing_file: "All required KYC documents and the signed contract must be uploaded.",
     invalid_upload: "One or more uploads were not accepted.",
+    file_too_large: "Each document must be 10 MB or smaller. Please reduce the file size and try again.",
     invalid_email: "Enter a valid email address or leave it blank.",
   };
 
@@ -79,6 +80,7 @@ export default async function VendorRegisterPage({
           method="post"
         >
           <section className="grid gap-4 rounded-3xl border border-slate-200/80 bg-slate-50 p-5">
+            <p className="text-sm text-slate-600">Upload clear scans in PDF, JPG, PNG, or WebP format. Maximum 10 MB per document.</p>
             <div className="grid gap-4 md:grid-cols-2">
               <label className="grid gap-2 text-sm font-semibold text-slate-700">
                 Owner name
@@ -177,10 +179,10 @@ export default async function VendorRegisterPage({
           <section className="grid gap-4 rounded-3xl border border-slate-200/80 bg-slate-50 p-5">
             <div className="grid gap-4 md:grid-cols-2">
               {[
-                ["passportPhoto", "Passport size photo", "image/*,application/pdf"],
-                ["citizenshipFront", "Citizenship front", "image/*,application/pdf"],
-                ["citizenshipBack", "Citizenship back", "image/*,application/pdf"],
-                ["panVat", "Business PAN / VAT", "image/*,application/pdf"],
+                ["passportPhoto", "Passport size photo", "image/jpeg,image/png,image/webp,application/pdf"],
+                ["citizenshipFront", "Citizenship front", "image/jpeg,image/png,image/webp,application/pdf"],
+                ["citizenshipBack", "Citizenship back", "image/jpeg,image/png,image/webp,application/pdf"],
+                ["panVat", "Business PAN / VAT", "image/jpeg,image/png,image/webp,application/pdf"],
               ].map(([name, label, accept]) => (
                 <label key={name} className="grid gap-2 text-sm font-semibold text-slate-700">
                   {label}
@@ -211,7 +213,7 @@ export default async function VendorRegisterPage({
                 <input
                   className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-3 text-sm outline-none file:mr-4 file:rounded-full file:border-0 file:bg-slate-950 file:px-4 file:py-2 file:text-sm file:font-bold file:text-white focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
                   name="signedContract"
-                  accept="image/*,application/pdf"
+                  accept="image/jpeg,image/png,image/webp,application/pdf"
                   required
                   type="file"
                 />

@@ -17,6 +17,7 @@ export default async function VendorSimsPage() {
       <h1 className="text-3xl font-black text-slate-950">My SIM status</h1>
       <div className="mt-6">
         <DataTable
+          pagination
           headers={["SIM", "Operator", "Order", "Status", "Commission/Fine"]}
           rows={sims.map(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any

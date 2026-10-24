@@ -16,6 +16,7 @@ export default async function KycPage() {
       <h1 className="text-3xl font-black text-slate-950">KYC submissions</h1>
       <div className="mt-6">
         <DataTable
+          pagination
           headers={[
             "Vendor",
             "Owner",

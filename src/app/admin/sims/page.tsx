@@ -40,7 +40,6 @@ export default async function SimsPage(props: {
       },
       include: { operator: true, assignedVendor: true, order: true },
       orderBy: { number: "asc" },
-      take: 500,
     }),
   ]);
 
@@ -174,6 +173,7 @@ export default async function SimsPage(props: {
 
       <div className="mt-6">
         <DataTable
+          pagination
           maxHeight="680px"
           headers={[
             "SIM",

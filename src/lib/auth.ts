@@ -31,7 +31,7 @@ export function isSupportAdmin(role?: string) {
   return role === "SUPPORT";
 }
 
-export function isAdminPageAllowed(role?: string, page: string) {
+export function isAdminPageAllowed(page: string, role?: string) {
   if (!isAdminRole(role)) {
     return false;
   }

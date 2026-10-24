@@ -55,6 +55,7 @@ export default async function NewOrderPage() {
       <OrderForm
         blocked={blocked}
         maxCommission={Math.max(vendor.balance, 0)}
+        balancePoints={Math.max(vendor.balance, 0)}
         operators={operators}
         paymentMethods={paymentMethods}
       />

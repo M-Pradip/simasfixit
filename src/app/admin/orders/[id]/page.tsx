@@ -5,6 +5,7 @@ import { DataTable } from "@/components/data-table";
 import { StatusBadge } from "@/components/status-badge";
 import { isPrivilegedAdmin, requireAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { formatMoney } from "@/lib/utils";
 import { notFound } from "next/navigation";
 export default async function OrderDetailPage(
   props: PageProps<"/admin/orders/[id]">,
@@ -76,7 +77,7 @@ export default async function OrderDetailPage(
         </div>
       </div>
 
-      <div className="mt-6 grid gap-4 rounded-lg border border-slate-200 bg-white p-5 md:grid-cols-4">
+      <div className="mt-6 grid gap-4 rounded-lg border border-slate-200 bg-white p-5 md:grid-cols-6">
         <div>
           <p className="text-sm text-slate-500">Status</p>
           <div className="mt-2">
@@ -95,10 +96,35 @@ export default async function OrderDetailPage(
           </p>
         </div>
         <div>
-          <p className="text-sm text-slate-500">Commission used</p>
-          <p className="mt-2 font-bold">Rs. {order.commissionUsed}</p>
+          <p className="text-sm text-slate-500">SIM unit cost</p>
+          <p className="mt-2 font-bold">{formatMoney(order.simUnitCost)}</p>
+        </div>
+        <div>
+          <p className="text-sm text-slate-500">Subtotal</p>
+          <p className="mt-2 font-bold">{formatMoney(order.subtotal)}</p>
+        </div>
+        <div>
+          <p className="text-sm text-slate-500">Balance points used</p>
+          <p className="mt-2 font-bold">{formatMoney(order.commissionUsed)}</p>
+        </div>
+        <div>
+          <p className="text-sm text-slate-500">Amount due</p>
+          <p className="mt-2 font-bold">{formatMoney(order.amountDue)}</p>
         </div>
       </div>
+
+      {order.paymentMethod === "ONLINE" && order.paymentScreenshotUrl && (
+        <section className="mt-6 rounded-lg border border-slate-200 bg-white p-5">
+          <h2 className="text-lg font-bold text-slate-950">Vendor payment screenshot</h2>
+          <a href={order.paymentScreenshotUrl} target="_blank" rel="noreferrer">
+            <img
+              src={order.paymentScreenshotUrl}
+              alt={`Payment screenshot for ${order.reference}`}
+              className="mt-4 max-h-[32rem] max-w-full rounded-md border border-slate-200 object-contain"
+            />
+          </a>
+        </section>
+      )}
 
       <section className="mt-6">
         <h2 className="mb-4 text-xl font-bold text-slate-950">

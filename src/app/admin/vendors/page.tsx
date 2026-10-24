@@ -26,6 +26,7 @@ export default async function VendorsPage() {
       </p>
       <div className="mt-6">
         <DataTable
+          pagination
           headers={[
             "Pasal",
             "Owner",

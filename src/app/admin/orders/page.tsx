@@ -77,6 +77,7 @@ export default async function OrdersPage(props: {
       </form>
       <div className="mt-6">
         <DataTable
+          pagination
           headers={[
             "Reference",
             "Vendor",

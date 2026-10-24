@@ -1,7 +1,7 @@
 import { DataTable } from "@/components/data-table";
 import { StatusBadge } from "@/components/status-badge";
 import { requireVendorSession } from "@/lib/auth";
-import { formatNepalDate, nepalDateRange } from "@/lib/utils";
+import { formatMoney, formatNepalDate, nepalDateRange } from "@/lib/utils";
 import { prisma } from "@/lib/prisma";
 
 export default async function VendorOrdersPage(props: { searchParams: Promise<{ dateFrom?: string; dateTo?: string; status?: string }> }) {
@@ -36,12 +36,14 @@ export default async function VendorOrdersPage(props: { searchParams: Promise<{ 
       </form>
       <div className="mt-6">
         <DataTable
-          headers={["Reference", "Operator", "Qty", "SIM range", "Payment", "Status", "Created", "Delivered"]}
+          pagination
+          headers={["Reference", "Operator", "Qty", "SIM range", "Amount due", "Payment", "Status", "Created", "Delivered"]}
           rows={orders.map((order) => [
             order.reference,
             order.operator.name,
             order.quantity,
             order.assignedStartNumber ? `${order.assignedStartNumber}-${order.assignedEndNumber}` : "Pending assignment",
+            formatMoney(order.amountDue),
             order.paymentMethod,
             <StatusBadge key="status" status={order.status} />,
             formatNepalDate(order.createdAt),

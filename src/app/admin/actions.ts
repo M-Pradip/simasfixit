@@ -2,7 +2,7 @@
 
 import { getCurrentSession, isPrivilegedAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { saveLocalUpload } from "@/lib/upload";
+import { saveUpload } from "@/lib/upload";
 import type { AdminRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
@@ -160,19 +160,21 @@ export async function updateOperatorDefaults(formData: FormData) {
   await requirePrivilegedAdmin();
 
   const operatorId = requiredString(formData, "operatorId");
+  const simCost = optionalNumber(formData, "simCost");
   const defaultCommission = optionalNumber(formData, "defaultCommission");
   const defaultFine = optionalNumber(formData, "defaultFine");
 
-  if (defaultCommission === null || defaultFine === null) {
-    throw new Error("Default commission and fine are required");
+  if (simCost === null || defaultCommission === null || defaultFine === null) {
+    throw new Error("SIM cost, default commission, and fine are required");
   }
 
   await prisma.operator.update({
     where: { id: operatorId },
-    data: { defaultCommission, defaultFine },
+    data: { simCost, defaultCommission, defaultFine },
   });
 
   revalidatePath("/admin/operators");
+  revalidatePath("/vendor/orders/new");
   revalidatePath("/admin/vendors");
 }
 
@@ -300,7 +302,7 @@ export async function updatePaymentMethodQr(formData: FormData) {
     throw new Error("QR image is required");
   }
 
-  const qrUrl = await saveLocalUpload("payment-qr", file);
+  const qrUrl = await saveUpload("payment-qr", file);
   await prisma.paymentMethod.update({
     where: { id: paymentMethodId },
     data: { qrUrl },
@@ -330,7 +332,7 @@ export async function addContract(formData: FormData) {
     throw new Error("Contract file is required");
   }
 
-  const fileUrl = await saveLocalUpload("contracts", file);
+  const fileUrl = await saveUpload("contracts", file);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await prisma.$transaction(async (tx: any) => {
     if (active) {

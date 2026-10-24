@@ -19,8 +19,10 @@ export default async function PaymentMethodsPage() {
   return (
     <div>
       <h1 className="text-3xl font-black text-slate-950">Payment methods</h1>
+      <p className="mt-2 text-sm text-slate-600">QR images must be JPG, PNG, or WebP and no larger than 5 MB.</p>
       <div className="mt-6">
         <DataTable
+          pagination
           headers={["Name", "Type", "Status", "QR", "Note", "Action"]}
           rows={methods.map((method) => [
             method.name,
@@ -48,7 +50,7 @@ export default async function PaymentMethodsPage() {
                 <input
                   name="qr"
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp"
                   className="w-36 text-xs"
                   required
                 />

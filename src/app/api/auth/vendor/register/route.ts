@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { saveLocalUpload } from "@/lib/upload";
+import { saveUpload, validateUpload } from "@/lib/upload";
 import bcrypt from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -19,7 +19,14 @@ function requiredText(formData: FormData, key: string) {
 }
 
 export async function POST(request: NextRequest) {
-  const formData = await request.formData();
+  const contentLength = Number(request.headers.get("content-length") ?? 0);
+  if (contentLength > 55 * 1024 * 1024) return redirectWithError(request, "file_too_large");
+  let formData: FormData;
+  try {
+    formData = await request.formData();
+  } catch {
+    return redirectWithError(request, "invalid_upload");
+  }
 
   const ownerName = requiredText(formData, "ownerName");
   const businessName = requiredText(formData, "businessName");
@@ -81,6 +88,18 @@ export async function POST(request: NextRequest) {
     return redirectWithError(request, "missing_file");
   }
 
+  try {
+    for (const file of [passportPhoto, citizenshipFront, citizenshipBack, panVat]) {
+      validateUpload("kyc", file);
+    }
+    validateUpload("contracts", signedContract);
+  } catch (error) {
+    return redirectWithError(
+      request,
+      error instanceof Error && error.message.includes("too large") ? "file_too_large" : "invalid_upload",
+    );
+  }
+
   if (
     !passportPhoto.size ||
     !citizenshipFront.size ||
@@ -109,11 +128,11 @@ export async function POST(request: NextRequest) {
 
   const [passportPhotoUrl, citizenshipFrontUrl, citizenshipBackUrl, panVatUrl, signedContractUrl] =
     await Promise.all([
-      saveLocalUpload("kyc", passportPhoto),
-      saveLocalUpload("kyc", citizenshipFront),
-      saveLocalUpload("kyc", citizenshipBack),
-      saveLocalUpload("kyc", panVat),
-      saveLocalUpload("contracts", signedContract),
+      saveUpload("kyc", passportPhoto),
+      saveUpload("kyc", citizenshipFront),
+      saveUpload("kyc", citizenshipBack),
+      saveUpload("kyc", panVat),
+      saveUpload("contracts", signedContract),
     ]);
 
   const passwordHash = await bcrypt.hash(password, 10);

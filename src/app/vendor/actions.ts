@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireVendorSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { saveUpload, validateUpload } from "@/lib/upload";
 
 function requiredString(formData: FormData, key: string) {
   const value = String(formData.get(key) ?? "").trim();
@@ -48,15 +49,66 @@ export async function createVendorOrder(formData: FormData) {
     throw new Error("Selected payment method is not active");
   }
 
-  await prisma.order.create({
-    data: {
+  const subtotal = operator.simCost * quantity;
+  if (!Number.isSafeInteger(subtotal)) {
+    throw new Error("Order total is too large");
+  }
+  if (commissionUsed > subtotal) {
+    throw new Error("Balance points cannot exceed the order subtotal");
+  }
+
+  const screenshotValue = formData.get("paymentScreenshot");
+  const screenshot = screenshotValue instanceof File && screenshotValue.size > 0
+    ? screenshotValue
+    : null;
+  if (screenshot && paymentMethod.type !== "ONLINE") {
+    throw new Error("Payment screenshots are only accepted for QR/online payments");
+  }
+  if (screenshot) validateUpload("payment-proof", screenshot);
+  const paymentScreenshotUrl = screenshot
+    ? await saveUpload("payment-proof", screenshot)
+    : null;
+
+  await prisma.$transaction(async (tx) => {
+    let updatedVendor = vendor;
+    if (commissionUsed > 0) {
+      const debit = await tx.vendor.updateMany({
+        where: { id: vendor.id, balance: { gte: commissionUsed } },
+        data: { balance: { decrement: commissionUsed } },
+      });
+      if (debit.count !== 1) {
+        throw new Error("Not enough balance points remain for this order");
+      }
+      updatedVendor = await tx.vendor.findUniqueOrThrow({ where: { id: vendor.id } });
+    }
+
+    const order = await tx.order.create({
+      data: {
       reference: `ORD-${Date.now().toString().slice(-6)}`,
       vendorId: vendor.id,
       operatorId: operator.id,
       quantity,
+      simUnitCost: operator.simCost,
+      subtotal,
+      amountDue: subtotal - commissionUsed,
+      paymentScreenshotUrl,
       paymentMethod: paymentMethod.type,
       commissionUsed,
-    },
+      },
+    });
+
+    if (commissionUsed > 0) {
+      await tx.balanceLedger.create({
+        data: {
+          vendorId: vendor.id,
+          type: "COMMISSION_WITHDRAWAL",
+          amount: -commissionUsed,
+          runningBalance: updatedVendor.balance,
+          note: `Balance points applied to order ${order.reference}`,
+          orderId: order.id,
+        },
+      });
+    }
   });
 
   revalidatePath("/vendor/orders");

@@ -29,8 +29,10 @@ export default async function OperatorsPage() {
       </p>
       <div className="mt-6">
         <DataTable
+          pagination
           headers={[
             "Operator",
+            "SIM cost price",
             "Default commission",
             "Default fine",
             "Status",
@@ -43,11 +45,23 @@ export default async function OperatorsPage() {
               {operator.name}
             </span>,
             <form
+              key="simCost"
+              action={updateOperatorDefaults}
+              className="flex min-w-[220px] items-center gap-2"
+            >
+              <input type="hidden" name="operatorId" value={operator.id} />
+              <input type="hidden" name="defaultCommission" value={operator.defaultCommission} />
+              <input type="hidden" name="defaultFine" value={operator.defaultFine} />
+              <input name="simCost" type="number" min="0" defaultValue={operator.simCost} className="w-24 rounded-md border border-slate-300 px-3 py-2 text-sm" />
+              <button className="rounded-md bg-slate-950 px-3 py-2 text-xs font-bold text-white hover:bg-slate-800">Update</button>
+            </form>,
+            <form
               key="commission"
               action={updateOperatorDefaults}
               className="flex min-w-[220px] items-center gap-2"
             >
               <input type="hidden" name="operatorId" value={operator.id} />
+              <input type="hidden" name="simCost" value={operator.simCost} />
               <input
                 name="defaultCommission"
                 type="number"
@@ -70,6 +84,7 @@ export default async function OperatorsPage() {
               className="flex min-w-[220px] items-center gap-2"
             >
               <input type="hidden" name="operatorId" value={operator.id} />
+              <input type="hidden" name="simCost" value={operator.simCost} />
               <input
                 name="defaultCommission"
                 type="hidden"
