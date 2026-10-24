@@ -24,7 +24,7 @@ function registerMessage(error?: string | string[], registered?: string | string
     weak_password: "Password must be at least 8 characters long.",
     missing_file: "All required KYC documents and the signed contract must be uploaded.",
     invalid_upload: "One or more uploads were not accepted.",
-    file_too_large: "Each document must be 10 MB or smaller. Please reduce the file size and try again.",
+    file_too_large: "KYC documents must be 10 MB or smaller; the signed contract may be up to 20 MB. Please reduce the file size and try again.",
     invalid_email: "Enter a valid email address or leave it blank.",
   };
 
@@ -196,27 +196,37 @@ export default async function VendorRegisterPage({
                 </label>
               ))}
 
-              <div className="grid gap-2 text-sm font-semibold text-slate-700">
-                <div className="flex items-center justify-between gap-3">
-                  <span>Signed contract copy</span>
-                  {activeContract ? (
-                    <Link
-                      className="font-semibold text-teal-700 hover:text-teal-800"
-                      href={activeContract.fileUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Download contract
-                    </Link>
-                  ) : null}
+              <div className="grid gap-4 rounded-2xl border border-teal-100 bg-white p-4 md:col-span-2 md:grid-cols-2 md:items-center">
+                <div className="grid gap-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <label className="text-sm font-semibold text-slate-700" htmlFor="signedContract">
+                      Signed contract copy <span className="text-rose-600">*</span>
+                    </label>
+                    {activeContract ? (
+                      <a
+                        className="inline-flex rounded-lg border border-teal-200 px-3 py-2 text-sm font-semibold text-teal-700 hover:bg-teal-50"
+                        href={activeContract.fileUrl}
+                        download
+                      >
+                        Download contract
+                      </a>
+                    ) : null}
+                  </div>
+                  <input
+                    id="signedContract"
+                    className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-3 text-sm outline-none file:mr-4 file:rounded-full file:border-0 file:bg-slate-950 file:px-4 file:py-2 file:text-sm file:font-bold file:text-white focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
+                    name="signedContract"
+                    accept="image/jpeg,image/png,image/webp,application/pdf"
+                    required
+                    type="file"
+                  />
                 </div>
-                <input
-                  className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-3 text-sm outline-none file:mr-4 file:rounded-full file:border-0 file:bg-slate-950 file:px-4 file:py-2 file:text-sm file:font-bold file:text-white focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
-                  name="signedContract"
-                  accept="image/jpeg,image/png,image/webp,application/pdf"
-                  required
-                  type="file"
-                />
+                <div className="rounded-xl bg-teal-50 p-4 text-sm leading-6 text-teal-900">
+                  <p className="font-bold">Required: download, sign, and upload</p>
+                  <p className="mt-1">
+                    Download the current contract, sign it, then upload the signed copy here. Accepted formats: PDF, JPG, PNG, or WebP (up to 20 MB).
+                  </p>
+                </div>
               </div>
             </div>
           </section>

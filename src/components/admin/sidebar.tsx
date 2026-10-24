@@ -18,6 +18,7 @@ const items: [
   ["Contracts", "/admin/contracts", ["SUPERADMIN", "MANAGER"]],
   ["Users", "/admin/users", ["SUPERADMIN"]],
   ["Roles", "/admin/roles", ["SUPERADMIN"]],
+  ["About Platform", "/admin/about", ["ALL"]],
 ];
 
 export async function AdminSidebar() {

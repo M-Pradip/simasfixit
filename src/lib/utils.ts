@@ -22,8 +22,9 @@ export function formatNepalDateTime(date: Date | null | undefined) {
     year: "numeric",
     month: "short",
     day: "2-digit",
-    hour: "2-digit",
+    hour: "numeric",
     minute: "2-digit",
+    hour12: true,
   }).format(date);
 }
 

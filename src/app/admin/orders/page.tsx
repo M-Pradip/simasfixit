@@ -3,7 +3,7 @@ import { DataTable } from "@/components/data-table";
 import { StatusBadge } from "@/components/status-badge";
 import { isPrivilegedAdmin, requireAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { formatNepalDate, nepalDateRange } from "@/lib/utils";
+import { formatNepalDateTime, nepalDateRange } from "@/lib/utils";
 import Link from "next/link";
 
 export default async function OrdersPage(props: {
@@ -104,7 +104,7 @@ export default async function OrdersPage(props: {
               : "Not assigned",
             order.paymentMethod,
             <StatusBadge key="status" status={order.status} />,
-            formatNepalDate(order.createdAt),
+            formatNepalDateTime(order.createdAt),
           ])}
         />
       </div>

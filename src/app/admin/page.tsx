@@ -2,7 +2,7 @@ import Link from "next/link";
 import { DataTable } from "@/components/data-table";
 import { StatCard } from "@/components/stat-card";
 import { StatusBadge } from "@/components/status-badge";
-import { formatMoney } from "@/lib/utils";
+import { formatMoney, formatNepalDateTime } from "@/lib/utils";
 import { prisma } from "@/lib/prisma";
 
 export default async function AdminDashboard() {
@@ -43,7 +43,7 @@ export default async function AdminDashboard() {
       <section className="mt-8">
         <h2 className="mb-4 text-xl font-bold text-slate-950">Recent orders</h2>
         <DataTable
-          headers={["Reference", "Vendor", "Operator", "Qty", "Payment", "Status"]}
+          headers={["Reference", "Vendor", "Operator", "Qty", "Payment", "Status", "Created"]}
           rows={recentOrders.map((order) => [
             <Link className="font-bold text-slate-950" href={`/admin/orders/${order.id}`} key={order.id}>{order.reference}</Link>,
             order.vendor.businessName,
@@ -51,6 +51,7 @@ export default async function AdminDashboard() {
             order.quantity,
             order.paymentMethod,
             <StatusBadge key="status" status={order.status} />,
+            formatNepalDateTime(order.createdAt),
           ])}
         />
       </section>

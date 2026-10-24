@@ -7,6 +7,7 @@ const items = [
   ["My SIMs", "/vendor/sims"],
   ["Balance", "/vendor/balance"],
   ["Profile", "/vendor/profile"],
+  ["About Platform", "/vendor/about"],
 ];
 
 export function VendorSidebar() {
