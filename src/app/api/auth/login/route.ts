@@ -1,8 +1,8 @@
 import { encryptSession, sessionCookieName } from "@/lib/auth";
+import { publicUrl } from "@/lib/base-url";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { NextResponse, type NextRequest } from "next/server";
-
 function normalizePhone(value: string) {
   return value.replace(/[\s()-]/g, "");
 }
@@ -14,14 +14,20 @@ function isEmail(value: string) {
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
   const identifier = String(
-    formData.get("identifier") ?? formData.get("email") ?? formData.get("phone") ?? "",
+    formData.get("identifier") ??
+      formData.get("email") ??
+      formData.get("phone") ??
+      "",
   )
     .trim()
     .toLowerCase();
   const password = String(formData.get("password") ?? "");
 
   if (!identifier || !password) {
-    return NextResponse.redirect(new URL("/login?error=invalid", request.url), 303);
+    return NextResponse.redirect(
+      publicUrl(request, "/login?error=invalid"),
+      303,
+    );
   }
 
   if (isEmail(identifier)) {
@@ -32,7 +38,10 @@ export async function POST(request: NextRequest) {
       !user.active ||
       !(await bcrypt.compare(password, user.passwordHash))
     ) {
-      return NextResponse.redirect(new URL("/login?error=invalid", request.url), 303);
+      return NextResponse.redirect(
+        publicUrl(request, "/login?error=invalid"),
+        303,
+      );
     }
 
     const token = await encryptSession({
@@ -41,7 +50,7 @@ export async function POST(request: NextRequest) {
       kind: "admin",
       role: user.role,
     });
-    const response = NextResponse.redirect(new URL("/admin", request.url), 303);
+    const response = NextResponse.redirect(publicUrl(request, "/admin"), 303);
 
     response.cookies.set(sessionCookieName, token, {
       httpOnly: true,
@@ -58,16 +67,22 @@ export async function POST(request: NextRequest) {
   const vendor = await prisma.vendor.findUnique({ where: { phone } });
 
   if (!vendor) {
-    return NextResponse.redirect(new URL("/login?error=invalid", request.url), 303);
+    return NextResponse.redirect(
+      publicUrl(request, "/login?error=invalid"),
+      303,
+    );
   }
 
   if (vendor.status !== "APPROVED") {
-    return NextResponse.redirect(new URL("/login?error=pending", request.url), 303);
+    return NextResponse.redirect(
+      publicUrl(request, "/login?error=pending"),
+      303,
+    );
   }
 
   if (!(await bcrypt.compare(password, vendor.passwordHash))) {
     return NextResponse.redirect(
-      new URL("/login?error=vendor_password", request.url),
+      publicUrl(request, "/login?error=vendor_password"),
       303,
     );
   }
@@ -77,7 +92,7 @@ export async function POST(request: NextRequest) {
     name: vendor.businessName,
     kind: "vendor",
   });
-  const response = NextResponse.redirect(new URL("/vendor", request.url), 303);
+  const response = NextResponse.redirect(publicUrl(request, "/vendor"), 303);
 
   response.cookies.set(sessionCookieName, token, {
     httpOnly: true,

@@ -1,3 +1,4 @@
+import { publicUrl } from "@/lib/base-url";
 import { NextResponse, type NextRequest } from "next/server";
 import { decryptSession, sessionCookieName } from "./lib/auth";
 
@@ -9,7 +10,7 @@ export async function proxy(request: NextRequest) {
 
   if (pathname.startsWith("/admin/login")) {
     if (session?.kind === "admin") {
-      return NextResponse.redirect(new URL("/admin", request.url));
+      return NextResponse.redirect(publicUrl(request, "/admin"));
     }
 
     return NextResponse.next();
@@ -17,7 +18,7 @@ export async function proxy(request: NextRequest) {
 
   if (pathname.startsWith("/vendor/login")) {
     if (session?.kind === "vendor") {
-      return NextResponse.redirect(new URL("/vendor", request.url));
+      return NextResponse.redirect(publicUrl(request, "/vendor"));
     }
 
     return NextResponse.next();
@@ -29,13 +30,13 @@ export async function proxy(request: NextRequest) {
 
   if (pathname.startsWith("/admin")) {
     if (session?.kind !== "admin") {
-      return NextResponse.redirect(new URL("/admin/login", request.url));
+      return NextResponse.redirect(publicUrl(request, "/admin/login"));
     }
   }
 
   if (pathname.startsWith("/vendor")) {
     if (session?.kind !== "vendor") {
-      return NextResponse.redirect(new URL("/vendor/login", request.url));
+      return NextResponse.redirect(publicUrl(request, "/vendor/login"));
     }
   }
 

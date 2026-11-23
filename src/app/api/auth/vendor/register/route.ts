@@ -1,15 +1,15 @@
+import { publicUrl } from "@/lib/base-url";
 import { prisma } from "@/lib/prisma";
 import { saveUpload, validateUpload } from "@/lib/upload";
 import bcrypt from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
-
 function normalizePhone(value: string) {
   return value.replace(/[\s()-]/g, "");
 }
 
 function redirectWithError(request: NextRequest, code: string) {
   return NextResponse.redirect(
-    new URL(`/vendor/register?error=${encodeURIComponent(code)}`, request.url),
+    publicUrl(request, `/vendor/register?error=${encodeURIComponent(code)}`),
     303,
   );
 }
@@ -20,7 +20,8 @@ function requiredText(formData: FormData, key: string) {
 
 export async function POST(request: NextRequest) {
   const contentLength = Number(request.headers.get("content-length") ?? 0);
-  if (contentLength > 55 * 1024 * 1024) return redirectWithError(request, "file_too_large");
+  if (contentLength > 55 * 1024 * 1024)
+    return redirectWithError(request, "file_too_large");
   let formData: FormData;
   try {
     formData = await request.formData();
@@ -39,7 +40,14 @@ export async function POST(request: NextRequest) {
   const password = requiredText(formData, "password");
   const confirmPassword = requiredText(formData, "confirmPassword");
 
-  if (!ownerName || !businessName || !address || !phone || !citizenshipNumber || !panNumber) {
+  if (
+    !ownerName ||
+    !businessName ||
+    !address ||
+    !phone ||
+    !citizenshipNumber ||
+    !panNumber
+  ) {
     return redirectWithError(request, "invalid_upload");
   }
 
@@ -49,9 +57,7 @@ export async function POST(request: NextRequest) {
 
   if (!emailRaw) {
     // Email is optional, so leave it empty.
-  } else if (
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailRaw)
-  ) {
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailRaw)) {
     return redirectWithError(request, "invalid_email");
   }
 
@@ -89,14 +95,21 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    for (const file of [passportPhoto, citizenshipFront, citizenshipBack, panVat]) {
+    for (const file of [
+      passportPhoto,
+      citizenshipFront,
+      citizenshipBack,
+      panVat,
+    ]) {
       validateUpload("kyc", file);
     }
     validateUpload("contracts", signedContract);
   } catch (error) {
     return redirectWithError(
       request,
-      error instanceof Error && error.message.includes("too large") ? "file_too_large" : "invalid_upload",
+      error instanceof Error && error.message.includes("too large")
+        ? "file_too_large"
+        : "invalid_upload",
     );
   }
 
@@ -126,14 +139,19 @@ export async function POST(request: NextRequest) {
     return redirectWithError(request, "duplicate_account");
   }
 
-  const [passportPhotoUrl, citizenshipFrontUrl, citizenshipBackUrl, panVatUrl, signedContractUrl] =
-    await Promise.all([
-      saveUpload("kyc", passportPhoto),
-      saveUpload("kyc", citizenshipFront),
-      saveUpload("kyc", citizenshipBack),
-      saveUpload("kyc", panVat),
-      saveUpload("contracts", signedContract),
-    ]);
+  const [
+    passportPhotoUrl,
+    citizenshipFrontUrl,
+    citizenshipBackUrl,
+    panVatUrl,
+    signedContractUrl,
+  ] = await Promise.all([
+    saveUpload("kyc", passportPhoto),
+    saveUpload("kyc", citizenshipFront),
+    saveUpload("kyc", citizenshipBack),
+    saveUpload("kyc", panVat),
+    saveUpload("contracts", signedContract),
+  ]);
 
   const passwordHash = await bcrypt.hash(password, 10);
 
@@ -199,7 +217,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.redirect(
-      new URL("/vendor/login?registered=1", request.url),
+      publicUrl(request, "/vendor/login?registered=1"),
       303,
     );
   } catch {

@@ -11,7 +11,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "prisma db seed",
-    "db:push": "prisma db push"
+    "db:push": "prisma db push",
+    "admin:set": "tsx --env-file=.env scripts/create-admin.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

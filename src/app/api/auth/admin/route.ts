@@ -1,11 +1,13 @@
 import { encryptSession, sessionCookieName } from "@/lib/auth";
+import { publicUrl } from "@/lib/base-url";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { NextResponse, type NextRequest } from "next/server";
-
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
-  const email = String(formData.get("email") ?? formData.get("identifier") ?? "")
+  const email = String(
+    formData.get("email") ?? formData.get("identifier") ?? "",
+  )
     .trim()
     .toLowerCase();
   const password = String(formData.get("password") ?? "");
@@ -17,7 +19,7 @@ export async function POST(request: NextRequest) {
     !(await bcrypt.compare(password, user.passwordHash))
   ) {
     return NextResponse.redirect(
-      new URL("/admin/login?error=invalid", request.url),
+      publicUrl(request, "/admin/login?error=invalid"),
       303,
     );
   }
@@ -28,7 +30,7 @@ export async function POST(request: NextRequest) {
     kind: "admin",
     role: user.role,
   });
-  const response = NextResponse.redirect(new URL("/admin", request.url), 303);
+  const response = NextResponse.redirect(publicUrl(request, "/admin"), 303);
 
   response.cookies.set(sessionCookieName, token, {
     httpOnly: true,
