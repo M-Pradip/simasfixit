@@ -3,7 +3,11 @@ import { DataTable } from "@/components/data-table";
 import { StatusBadge } from "@/components/status-badge";
 import { isPrivilegedAdmin, requireAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { toggleOperatorStatus, updateOperatorDefaults } from "../actions";
+import {
+  createOperator,
+  toggleOperatorStatus,
+  updateOperatorDefaults,
+} from "../actions";
 
 export default async function OperatorsPage() {
   const session = await requireAdminSession();
@@ -27,6 +31,43 @@ export default async function OperatorsPage() {
         Only one operator needs to be active now; all records are already
         operator-tagged.
       </p>
+      <form
+        action={createOperator}
+        className="mt-6 grid min-w-0 gap-4 rounded-lg border border-slate-200 bg-white p-5 sm:grid-cols-2 xl:grid-cols-3"
+      >
+        <label className="grid gap-1 text-sm font-semibold text-slate-700">
+          Operator name
+          <input
+            name="name"
+            required
+            maxLength={100}
+            placeholder="e.g. Ncell"
+            className="w-full min-w-0 rounded-md border border-slate-300 px-3 py-2 font-normal"
+          />
+        </label>
+        <label className="grid gap-1 text-sm font-semibold text-slate-700">
+          SIM cost
+          <input name="simCost" type="number" min="0" step="1" required defaultValue="0" className="w-full min-w-0 rounded-md border border-slate-300 px-3 py-2 font-normal" />
+        </label>
+        <label className="grid gap-1 text-sm font-semibold text-slate-700">
+          Default commission
+          <input name="defaultCommission" type="number" min="0" step="1" required className="w-full min-w-0 rounded-md border border-slate-300 px-3 py-2 font-normal" />
+        </label>
+        <label className="grid gap-1 text-sm font-semibold text-slate-700">
+          Default fine
+          <input name="defaultFine" type="number" min="0" step="1" required className="w-full min-w-0 rounded-md border border-slate-300 px-3 py-2 font-normal" />
+        </label>
+        <label className="grid gap-1 text-sm font-semibold text-slate-700">
+          Status
+          <select name="status" defaultValue="ACTIVE" className="w-full min-w-0 rounded-md border border-slate-300 px-3 py-2 font-normal">
+            <option value="ACTIVE">Active</option>
+            <option value="INACTIVE">Inactive</option>
+          </select>
+        </label>
+        <button className="self-end rounded-md bg-slate-950 px-4 py-2.5 text-sm font-bold text-white hover:bg-slate-800">
+          Create operator
+        </button>
+      </form>
       <div className="mt-6">
         <DataTable
           pagination

@@ -201,6 +201,32 @@ export async function updateOperatorDefaults(formData: FormData) {
   revalidatePath("/admin/vendors");
 }
 
+export async function createOperator(formData: FormData) {
+  await requirePrivilegedAdmin();
+
+  const name = z.string().trim().min(1).max(100).parse(formData.get("name"));
+  const simCost = optionalNumber(formData, "simCost");
+  const defaultCommission = optionalNumber(formData, "defaultCommission");
+  const defaultFine = optionalNumber(formData, "defaultFine");
+  const status = z.enum(["ACTIVE", "INACTIVE"]).parse(formData.get("status"));
+
+  if (simCost === null || defaultCommission === null || defaultFine === null) {
+    throw new Error("SIM cost, default commission, and fine are required");
+  }
+
+  const existing = await prisma.operator.findUnique({ where: { name } });
+  if (existing) {
+    throw new Error("An operator with that name already exists");
+  }
+
+  await prisma.operator.create({
+    data: { name, simCost, defaultCommission, defaultFine, status },
+  });
+
+  revalidatePath("/admin/operators");
+  revalidatePath("/vendor/orders/new");
+}
+
 export async function toggleOperatorStatus(formData: FormData) {
   await requirePrivilegedAdmin();
 
