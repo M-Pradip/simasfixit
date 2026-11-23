@@ -230,6 +230,26 @@ export async function togglePaymentMethodStatus(formData: FormData) {
   revalidatePath("/vendor/orders/new");
 }
 
+export async function createPaymentMethod(formData: FormData) {
+  await requirePrivilegedAdmin();
+
+  const name = requiredString(formData, "name");
+  const type = z.enum(["COD", "ONLINE"]).parse(formData.get("type"));
+  const note = String(formData.get("note") ?? "").trim();
+
+  await prisma.paymentMethod.create({
+    data: {
+      name,
+      type,
+      note: note || null,
+      active: String(formData.get("active") ?? "") === "on",
+    },
+  });
+
+  revalidatePath("/admin/payment-methods");
+  revalidatePath("/vendor/orders/new");
+}
+
 export async function createAdminUser(formData: FormData) {
   await requirePrivilegedAdmin();
 

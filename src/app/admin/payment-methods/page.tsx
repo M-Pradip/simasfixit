@@ -3,7 +3,11 @@ import { DataTable } from "@/components/data-table";
 import { StatusBadge } from "@/components/status-badge";
 import { isPrivilegedAdmin, requireAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { togglePaymentMethodStatus, updatePaymentMethodQr } from "../actions";
+import {
+  createPaymentMethod,
+  togglePaymentMethodStatus,
+  updatePaymentMethodQr,
+} from "../actions";
 
 export default async function PaymentMethodsPage() {
   const session = await requireAdminSession();
@@ -20,6 +24,48 @@ export default async function PaymentMethodsPage() {
     <div>
       <h1 className="text-3xl font-black text-slate-950">Payment methods</h1>
       <p className="mt-2 text-sm text-slate-600">QR images must be JPG, PNG, or WebP and no larger than 5 MB.</p>
+      <form
+        action={createPaymentMethod}
+        className="mt-6 grid gap-3 rounded-lg border border-slate-200 bg-white p-5 md:grid-cols-[1fr_180px_1fr_auto] md:items-end"
+      >
+        <label className="grid gap-1 text-sm font-semibold text-slate-700">
+          Name
+          <input
+            name="name"
+            required
+            maxLength={100}
+            placeholder="e.g. Cash on delivery"
+            className="rounded-md border border-slate-300 px-3 py-2 font-normal"
+          />
+        </label>
+        <label className="grid gap-1 text-sm font-semibold text-slate-700">
+          Type
+          <select
+            name="type"
+            defaultValue="COD"
+            className="rounded-md border border-slate-300 px-3 py-2 font-normal"
+          >
+            <option value="COD">Cash on delivery</option>
+            <option value="ONLINE">Online payment</option>
+          </select>
+        </label>
+        <label className="grid gap-1 text-sm font-semibold text-slate-700">
+          Note <span className="font-normal text-slate-500">(optional)</span>
+          <input
+            name="note"
+            maxLength={500}
+            placeholder="Payment instructions"
+            className="rounded-md border border-slate-300 px-3 py-2 font-normal"
+          />
+        </label>
+        <button className="rounded-md bg-slate-950 px-4 py-2.5 text-sm font-bold text-white hover:bg-slate-800">
+          Create payment method
+        </button>
+        <label className="flex items-center gap-2 text-sm text-slate-700 md:col-span-4">
+          <input type="checkbox" name="active" defaultChecked />
+          Active and available to vendors
+        </label>
+      </form>
       <div className="mt-6">
         <DataTable
           pagination
